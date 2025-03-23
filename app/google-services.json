@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "157740549909",
+    "project_id": "stone-paper-scissors-415a4",
+    "storage_bucket": "stone-paper-scissors-415a4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:157740549909:android:ee13f495e39d20baee0b1c",
+        "android_client_info": {
+          "package_name": "com.tflite.madlab6"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDXjVLd620tAysmK9ba9_ed7Z3LS_WBh0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
