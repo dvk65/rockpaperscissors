@@ -59,70 +59,102 @@ public class MainActivity extends AppCompatActivity {
         Button clearButton = binding.clearButton;
 
         sendButton.setOnClickListener(v -> {
-            String user1choice = optionSpinner1.getSelectedItem().toString();
-            String user2choice = optionSpinner2.getSelectedItem().toString();
+            final String[] user1choice = {optionSpinner1.getSelectedItem().toString()};
+            final String[] user2choice = {optionSpinner2.getSelectedItem().toString()};
 
-            if (!user1choice.isEmpty()) {
-                chatMessage = new ChatMessage("User1", "Played", user1choice, user2Score);
-                myRef.push().setValue(chatMessage);
-            }
+//            String user1choice = "";
+//            String user2choice = "";
 
-            if (!user2choice.isEmpty()) {
-                chatMessage = new ChatMessage("User2", "Played", user2choice, user2Score);
-                myRef.push().setValue(chatMessage);
-            }
-        });
+//            int user1Score = 0;
+//            int user2Score = 0;
 
-        clearButton.setOnClickListener(v -> myRef.removeValue());
+//            if (chatMessage.getSender().equals("User1")) {
+////                user1choice = chatMessage.getChoice();
+//                user1Score = chatMessage.getUserScore();
+//            } else if (chatMessage.getSender().equals("User2")) {
+////                user2choice = chatMessage.getChoice();
+//                user2Score = chatMessage.getUserScore();
+//            }
 
-        myRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                adapter.clearMessages();
+//            Log.d("SCORES", "Updated EventListener Scores - User1: " + user1Score + " | User2: " + user2Score);
 
-                String user1choice = "";
-                String user2choice = "";
-
-                int user1Score = 0;
-                int user2Score = 0;
-
-                for (DataSnapshot childSnapshot : snapshot.getChildren()) {
-                    chatMessage = childSnapshot.getValue(ChatMessage.class);
-                    assert chatMessage != null;
-                    adapter.addMessage(chatMessage);
-
-                    if (chatMessage.getSender().equals("User 1")) {
-                        user1choice = chatMessage.getChoice();
-                    } else if (chatMessage.getSender().equals("User 2")) {
-                        user2choice = chatMessage.getChoice();
+            myRef.child("user1Score").get().addOnCompleteListener(task -> {
+                if (task.isSuccessful() && task.getResult().exists()) {
+                    user1Score = task.getResult().getValue(Long.class).intValue();
+                } else {
+                    user1Score = 0;
+                }
+                myRef.child("user2Score").get().addOnCompleteListener(task2 -> {
+                    if (task2.isSuccessful() && task2.getResult().exists()) {
+                        user2Score = task2.getResult().getValue(Long.class).intValue();
+                    } else {
+                        user2Score = 0;
                     }
 
-                    if(!user1choice.isEmpty() && ! user2choice.isEmpty()) {
-                        if ((user1choice.equals("Rock") && user2choice.equals("Scissors")) ||
-                                (user1choice.equals("Scissors") && user2choice.equals("Paper")) ||
-                                (user1choice.equals("Paper") && user2choice.equals("Rock"))) {
+                    if(!user1choice[0].isEmpty() && !user2choice[0].isEmpty()) {
+                        if ((user1choice[0].equals("Rock") && user2choice[0].equals("Scissors")) ||
+                                (user1choice[0].equals("Scissors") && user2choice[0].equals("Paper")) ||
+                                (user1choice[0].equals("Paper") && user2choice[0].equals("Rock"))) {
                             user1Score++;
-                            myRef.child("user1Score").setValue(user1Score);
-                        } else if (!user1choice.equals(user2choice)) {
+                        } else if (!user1choice[0].equals(user2choice[0])) {
                             user2Score++;
-                            myRef.child("user2Score").setValue(user2Score);
+                            Log.d("SCORES", "Updated else if Scores - User1: " + user1Score + " | User2: " + user2Score);
                         }
 
-//                        myRef.child("User1Score").setValue(user1Score);
-//                        myRef.child("User2Score").setValue(user2Score);
+//                        myRef.child("user1Score").setValue(user1Score);
+//                        myRef.child("user2Score").setValue(user2Score);
+
+                        ChatMessage user1Message = new ChatMessage("User1", "Played", user1choice[0], user1Score);
+                        ChatMessage user2Message = new ChatMessage("User2", "Played", user2choice[0], user2Score);
+
+                        myRef.push().setValue(user1Message);
+                        myRef.push().setValue(user2Message);
+
                         if (user1Score == 5 || user2Score == 5) {
                             if (user1Score >= 5) {
                                 Toast.makeText(MainActivity.this, "User 1 Wins!", Toast.LENGTH_SHORT).show();
                             } else {
                                 Toast.makeText(MainActivity.this, "User 2 Wins!", Toast.LENGTH_SHORT).show();
                             }
-                            myRef.removeEventListener(this);
+//                            myRef.removeEventListener(this);
                             myRef.removeValue();
-                            break;
+//                            break;
                         }
-                        user1choice = "";
-                        user2choice = "";
+                        user1choice[0] = "";
+                        user2choice[0] = "";
                     }
+
+
+//                    if (!user1choice.isEmpty()) {
+//                        chatMessage = new ChatMessage("User1", "Played", user1choice, user1Score);
+//                        myRef.push().setValue(chatMessage);
+////                        Log.d("SCORES", "Updated Scores - User1: " + user1Score + " | User2: " + user2Score);
+//                    }
+//
+//                    if (!user2choice.isEmpty()) {
+//                        chatMessage = new ChatMessage("User2", "Played", user2choice, user2Score);
+//                        myRef.push().setValue(chatMessage);
+//                    }
+                });
+            });
+        });
+
+        clearButton.setOnClickListener(view -> myRef.removeValue());
+
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                adapter.clearMessages();
+
+                for (DataSnapshot childSnapshot : snapshot.getChildren()) {
+
+                    chatMessage = childSnapshot.getValue(ChatMessage.class);
+                    assert chatMessage != null;
+                    adapter.addMessage(chatMessage);
+
+
+
+
                 }
             }
 
@@ -132,9 +164,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (vi, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            vi.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
     }
