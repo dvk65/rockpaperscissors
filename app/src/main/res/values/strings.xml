@@ -1,8 +1,15 @@
 <resources>
-    <string name="app_name">MADLab6</string>
+    <string name="app_name">Rockin\' MAD</string>
     <string name="enter_your_message">Enter your message</string>
     <string name="send">Send</string>
     <string name="clear">Clear</string>
+    <string name="player_1">Player 1</string>
+    <string name="player_2">Player 2</string>
+    <string name="scissors">Scissors</string>
+    <string name="paper">Paper</string>
+    <string name="rock">Rock</string>
+    <string name="_0">0</string>
+    <string name="player_1_s_turn">Player 1\'s Turn</string>
     <string-array name="game_options">
         <item>Rock</item>
         <item>Paper</item>

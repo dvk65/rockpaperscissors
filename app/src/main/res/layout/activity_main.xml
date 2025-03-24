@@ -32,11 +32,13 @@
         android:autofillHints="Enter message"
         android:hint="@string/enter_your_message"
         android:inputType="none"
+        android:textColorHint="#546E7A"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/sendButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.9" />
+        app:layout_constraintVertical_bias="0.9"
+        tools:ignore="VisualLintTextFieldSize,TextContrastCheck" />
 
     <Button
         android:id="@+id/sendButton"
@@ -67,21 +69,23 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:entries="@array/game_options"
+        android:minHeight="48dp"
         app:layout_constraintBottom_toTopOf="@+id/messageInput"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.1"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline_horizontal_50"
-        app:layout_constraintHorizontal_bias="0.1" />
+        app:layout_constraintTop_toTopOf="@+id/guideline_horizontal_50" />
 
     <Spinner
         android:id="@+id/optionSpinner2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:entries="@array/game_options"
+        android:minHeight="48dp"
         app:layout_constraintBottom_toTopOf="@+id/messageInput"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.9"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline_horizontal_50"
-        app:layout_constraintHorizontal_bias="0.9" />
+        app:layout_constraintTop_toTopOf="@+id/guideline_horizontal_50" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

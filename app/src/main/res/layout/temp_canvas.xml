@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="24dp"
+    android:background="@color/black"
+    tools:context=".MainActivity">
+
+    <!-- Turn Indicator -->
+    <TextView
+        android:id="@+id/turnTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/player_1_s_turn"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:layout_marginBottom="32dp" />
+
+    <!-- Rock, Paper, Scissors Buttons -->
+    <LinearLayout
+        android:id="@+id/buttonsLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="32dp">
+
+        <ImageButton
+            android:id="@+id/rockButton"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/round_button_background"
+            android:scaleType="centerInside"
+            android:padding="12dp"
+            android:src="@drawable/rock"
+            android:contentDescription="@string/rock" />
+
+        <ImageButton
+            android:id="@+id/paperButton"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/round_button_background"
+            android:contentDescription="@string/paper"
+            android:padding="12dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/paper" />
+
+        <ImageButton
+            android:id="@+id/scissorsButton"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/round_button_background"
+            android:scaleType="centerInside"
+            android:padding="12dp"
+            android:src="@drawable/scissors"
+            android:contentDescription="@string/scissors" />
+    </LinearLayout>
+
+    <!-- Score Labels -->
+    <LinearLayout
+        android:id="@+id/scoreLabelsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/player1Score_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/player_1"
+            android:gravity="center"
+            android:textSize="20sp"
+            android:textColor="@color/turn_indicator"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/player2Score_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/player_2"
+            android:gravity="center"
+            android:textSize="20sp"
+            android:textColor="@color/white" />
+    </LinearLayout>
+
+    <!-- Score Values -->
+    <LinearLayout
+        android:id="@+id/scoresLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="16dp">
+
+        <TextView
+            android:id="@+id/player1Score"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/_0"
+            android:gravity="center"
+            android:textSize="48sp"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/player2Score"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/_0"
+            android:gravity="center"
+            android:textSize="48sp"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- RecyclerView for Game Messages -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/messageRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="16dp"
+        android:overScrollMode="never"
+        android:scrollbars="vertical" />
+
+</LinearLayout>
