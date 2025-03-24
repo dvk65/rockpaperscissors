@@ -18,7 +18,7 @@
         android:text="@string/player_1_s_turn"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="@color/white"
+        android:textColor="@color/player_1"
         android:layout_marginBottom="32dp" />
 
     <!-- Rock, Paper, Scissors Buttons -->
@@ -80,7 +80,7 @@
             android:text="@string/player_1"
             android:gravity="center"
             android:textSize="20sp"
-            android:textColor="@color/turn_indicator"
+            android:textColor="@color/player_1"
             android:textStyle="bold" />
 
         <TextView
