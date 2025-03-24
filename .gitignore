@@ -1,1 +1,17 @@
-.gradle
+### Ignore Gradle Wrapper Files ###
+gradle/
+.gradle/
+gradlew
+gradlew.bat
+
+### Ignore Build Artifacts ###
+build/
+out/
+
+### Ignore Local Environment Files ###
+*.iml
+.idea/
+*.log
+*.lock
+.DS_Store
+*.class
