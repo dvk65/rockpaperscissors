@@ -1,5 +1,6 @@
 package com.tflite.madlab6;
 
+/** @noinspection unused*/
 public class ChatMessage {
     private String sender;
     private String message;
@@ -8,7 +9,9 @@ public class ChatMessage {
     private int userScore;
     private String turn;
 
-    public ChatMessage() {}
+    public ChatMessage() {
+        // Default constructor required for Firebase
+    }
 
     public ChatMessage(String sender, String message, String choice, int userScore, String turn) {
         this.sender = sender;
@@ -22,15 +25,11 @@ public class ChatMessage {
     public String getSender() {
         return sender;
     }
-    public String getMessage() {
-        return message;
-    }
+    public String getMessage() { return message; }
     public String getChoice() {
         return choice;
     }
     public int getUserScore() { return userScore; }
     public String getTurn() { return turn; }
-    public long getTimestamp() {
-        return timestamp;
-    }
+    public long getTimestamp() { return timestamp; }
 }

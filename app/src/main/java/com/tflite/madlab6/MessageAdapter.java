@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
-    private List<ChatMessage> messageList;
+    private final List<ChatMessage> messageList;
     public MessageAdapter(List<ChatMessage> messageList) {
         this.messageList = messageList;
     }
@@ -26,7 +26,13 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     @Override
     public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
         ChatMessage chatMessage = messageList.get(position);
-        holder.gameOutput.setText(chatMessage.getSender() + ": " + chatMessage.getChoice() + " Score: " + chatMessage.getUserScore());
+
+        // If the message is empty, show a blank line
+        if (chatMessage.getSender().isEmpty() && chatMessage.getChoice().isEmpty()) {
+            holder.gameOutput.setText(""); // Blank line
+        } else {
+            holder.gameOutput.setText(chatMessage.getSender() + ": " + chatMessage.getChoice() + "\t\t" + " Score: " + chatMessage.getUserScore());
+        }
     }
 
     @Override

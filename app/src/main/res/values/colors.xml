@@ -7,4 +7,5 @@
 -
     <color name="player_1">#A6FF00</color>
     <color name="player_2">#C77DFF</color>"
+    <color name="grey">#808080</color>
 </resources>
