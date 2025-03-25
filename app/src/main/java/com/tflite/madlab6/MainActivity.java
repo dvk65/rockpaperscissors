@@ -74,19 +74,6 @@ public class MainActivity extends AppCompatActivity {
             prefs.edit().putString("assignedPlayer", assignedPlayer).apply();
         }
 
-        myRef.child("turn").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                turn = snapshot.getValue(String.class);
-                updateButtonState();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-                Toast.makeText(MainActivity.this, "Error updating turn", Toast.LENGTH_SHORT).show();
-            }
-        });
-
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
@@ -107,7 +94,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateButtonState() {
-        boolean changeTurn = turn != null && turn.equals(assignedPlayer);
+        Log.d("DEBUG", "Turn: " + turn);
+        Log.d("DEBUG", "Assigned Player: " + assignedPlayer);
+        boolean changeTurn = assignedPlayer.equals(turn);
+        Log.d("DEBUG", "Button Enabled: " + changeTurn);
 
         binding.rockButton.setEnabled(changeTurn);
         binding.paperButton.setEnabled(changeTurn);
@@ -134,8 +124,9 @@ public class MainActivity extends AppCompatActivity {
             turn = "User1"; // Switch turn
         }
 
-        // Update turn indicator after choice
+        // Update turn indicator and enable or disable buttons after choice
         updateTurnIndicator();
+        updateButtonState();
 
         // Determine the winner of the round
         if (!user1Choice.isEmpty() && !user2Choice.isEmpty()) {
