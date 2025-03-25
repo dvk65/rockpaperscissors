@@ -1,14 +1,19 @@
 package com.tflite.madlab6;
 
+import android.graphics.Typeface;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
+import android.os.Handler;
+import android.os.Looper;
 import android.widget.ImageButton;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.google.firebase.database.DataSnapshot;
@@ -27,7 +32,6 @@ public class MainActivity extends AppCompatActivity {
     FirebaseDatabase database;
     DatabaseReference myRef;
     MessageAdapter adapter;
-    private List<ChatMessage> messageList;
     ChatMessage chatMessage;
     int user1Score = 0;
     int user2Score = 0;
@@ -41,18 +45,19 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference();
 
-        messageList = new ArrayList<>();
+        List<ChatMessage> messageList = new ArrayList<>();
         adapter = new MessageAdapter(messageList);
         binding.messageRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.messageRecyclerView.setAdapter(adapter);
-
-        TextView turnTextView = binding.turnTextView;
-        TextView player1ScoreTextView = binding.player1Score;
-        TextView player2ScoreTextView = binding.player2Score;
 
         ImageButton rockButton = binding.rockButton;
         ImageButton paperButton = binding.paperButton;
@@ -67,10 +72,9 @@ public class MainActivity extends AppCompatActivity {
         paperButton.setOnClickListener(v -> handleChoice("Paper"));
         scissorsButton.setOnClickListener(v -> handleChoice("Scissors"));
 
-
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 adapter.clearMessages();
                 for (DataSnapshot childSnapshot : snapshot.getChildren()) {
                     chatMessage = childSnapshot.getValue(ChatMessage.class);
@@ -78,10 +82,11 @@ public class MainActivity extends AppCompatActivity {
                         adapter.addMessage(chatMessage);
                     }
                 }
+                binding.messageRecyclerView.scrollToPosition(adapter.getItemCount() - 1); // Scroll to the last item
             }
 
             @Override
-            public void onCancelled(DatabaseError error) {
+            public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(MainActivity.this, "Error loading messages", Toast.LENGTH_SHORT).show();
             }
         });
@@ -91,10 +96,18 @@ public class MainActivity extends AppCompatActivity {
         // Set turn text based on the current player's turn
         if ("User1".equals(turn)) {
             binding.turnTextView.setText(getString(R.string.player_1_s_turn));
-            binding.turnTextView.setTextColor(getResources().getColor(R.color.player_1));
+            binding.turnTextView.setTextColor(ContextCompat.getColor(this, R.color.player_1));
+            binding.player1ScoreLabel.setTextColor(ContextCompat.getColor(this, R.color.player_1));
+            binding.player2ScoreLabel.setTextColor(ContextCompat.getColor(this, R.color.grey));
+            binding.player1ScoreLabel.setTypeface(null, Typeface.BOLD);
+            binding.player2ScoreLabel.setTypeface(null, Typeface.NORMAL);
         } else {
             binding.turnTextView.setText(getString(R.string.player_2_s_turn));
-            binding.turnTextView.setTextColor(getResources().getColor(R.color.player_2));
+            binding.turnTextView.setTextColor(ContextCompat.getColor(this, R.color.player_2));
+            binding.player1ScoreLabel.setTextColor(ContextCompat.getColor(this, R.color.grey));
+            binding.player2ScoreLabel.setTextColor(ContextCompat.getColor(this, R.color.player_2));
+            binding.player1ScoreLabel.setTypeface(null, Typeface.NORMAL);
+            binding.player2ScoreLabel.setTypeface(null, Typeface.BOLD);
         }
     }
 
@@ -133,19 +146,23 @@ public class MainActivity extends AppCompatActivity {
             // Create chat messages for the round
             ChatMessage user1Message = new ChatMessage("User1", "Played", user1Choice, user1Score, turn);
             ChatMessage user2Message = new ChatMessage("User2", "Played", user2Choice, user2Score, turn);
+            ChatMessage blankMessage = new ChatMessage("", "", "", 0, ""); // Empty message
 
             myRef.push().setValue(user1Message);
             myRef.push().setValue(user2Message);
+            myRef.push().setValue(blankMessage);
 
             // Check for winner
             if (user1Score >= 5 || user2Score >= 5) {
                 String winner = (user1Score >= 5) ? "User 1 Wins!" : "User 2 Wins!";
                 Toast.makeText(MainActivity.this, winner, Toast.LENGTH_SHORT).show();
-                myRef.removeValue();
                 user1Score = 0;
                 user2Score = 0;
-                binding.player1Score.setText("0");
-                binding.player2Score.setText("0");
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    myRef.removeValue();
+                    binding.player1Score.setText("0");
+                    binding.player2Score.setText("0");
+                }, 3000); // Delay in milliseconds
             }
             user1Choice = "";
             user2Choice = "";
