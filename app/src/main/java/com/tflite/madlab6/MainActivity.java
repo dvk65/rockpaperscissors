@@ -1,5 +1,6 @@
 package com.tflite.madlab6;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -34,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
     private String user1Choice = "";
     private String user2Choice = "";
     private String turn = "User1";
+    private String currentPlayer;
+    private String assignedPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,23 +53,39 @@ public class MainActivity extends AppCompatActivity {
         binding.messageRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.messageRecyclerView.setAdapter(adapter);
 
-        TextView turnTextView = binding.turnTextView;
-        TextView player1ScoreTextView = binding.player1Score;
-        TextView player2ScoreTextView = binding.player2Score;
-
         ImageButton rockButton = binding.rockButton;
         ImageButton paperButton = binding.paperButton;
         ImageButton scissorsButton = binding.scissorsButton;
 
-        myRef.removeValue();
-
-//        updateTurnIndicator();
+//        myRef.removeValue();
 
         // Set listeners for buttons
         rockButton.setOnClickListener(v -> handleChoice("Rock"));
         paperButton.setOnClickListener(v -> handleChoice("Paper"));
         scissorsButton.setOnClickListener(v -> handleChoice("Scissors"));
 
+        // Auto-assign player
+        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+        assignedPlayer = prefs.getString("assignedPlayer", "");
+
+        // Default to User1 if no role is assigned
+        if (assignedPlayer.isEmpty()) {
+            assignedPlayer = "User1";
+            prefs.edit().putString("assignedPlayer", assignedPlayer).apply();
+        }
+
+        myRef.child("turn").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                turn = snapshot.getValue(String.class);
+                updateButtonState();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Toast.makeText(MainActivity.this, "Error updating turn", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -85,6 +104,14 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Error loading messages", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void updateButtonState() {
+        boolean changeTurn = turn != null && turn.equals(assignedPlayer);
+
+        binding.rockButton.setEnabled(changeTurn);
+        binding.paperButton.setEnabled(changeTurn);
+        binding.scissorsButton.setEnabled(changeTurn);
     }
 
     private void updateTurnIndicator() {
