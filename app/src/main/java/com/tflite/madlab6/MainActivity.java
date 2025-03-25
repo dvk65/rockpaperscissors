@@ -1,19 +1,15 @@
 package com.tflite.madlab6;
 
-import android.graphics.Typeface;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
+import android.util.Log;
+import android.view.View;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.google.firebase.database.DataSnapshot;
@@ -32,12 +28,15 @@ public class MainActivity extends AppCompatActivity {
     FirebaseDatabase database;
     DatabaseReference myRef;
     MessageAdapter adapter;
+    private List<ChatMessage> messageList;
     ChatMessage chatMessage;
     int user1Score = 0;
     int user2Score = 0;
     private String user1Choice = "";
     private String user2Choice = "";
     private String turn = "User1";
+    private String currentPlayer;
+    private String assignedPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,16 +44,11 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference();
 
-        List<ChatMessage> messageList = new ArrayList<>();
+        messageList = new ArrayList<>();
         adapter = new MessageAdapter(messageList);
         binding.messageRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.messageRecyclerView.setAdapter(adapter);
@@ -63,18 +57,26 @@ public class MainActivity extends AppCompatActivity {
         ImageButton paperButton = binding.paperButton;
         ImageButton scissorsButton = binding.scissorsButton;
 
-        myRef.removeValue();
-
-//        updateTurnIndicator();
+//        myRef.removeValue();
 
         // Set listeners for buttons
         rockButton.setOnClickListener(v -> handleChoice("Rock"));
         paperButton.setOnClickListener(v -> handleChoice("Paper"));
         scissorsButton.setOnClickListener(v -> handleChoice("Scissors"));
 
+        // Auto-assign player
+        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+        assignedPlayer = prefs.getString("assignedPlayer", "");
+
+        // Default to User1 if no role is assigned
+        if (assignedPlayer.isEmpty()) {
+            assignedPlayer = "User1";
+            prefs.edit().putString("assignedPlayer", assignedPlayer).apply();
+        }
+
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
+            public void onDataChange(DataSnapshot snapshot) {
                 adapter.clearMessages();
                 for (DataSnapshot childSnapshot : snapshot.getChildren()) {
                     chatMessage = childSnapshot.getValue(ChatMessage.class);
@@ -82,32 +84,34 @@ public class MainActivity extends AppCompatActivity {
                         adapter.addMessage(chatMessage);
                     }
                 }
-                binding.messageRecyclerView.scrollToPosition(adapter.getItemCount() - 1); // Scroll to the last item
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+            public void onCancelled(DatabaseError error) {
                 Toast.makeText(MainActivity.this, "Error loading messages", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void updateButtonState() {
+        Log.d("DEBUG", "Turn: " + turn);
+        Log.d("DEBUG", "Assigned Player: " + assignedPlayer);
+        boolean changeTurn = assignedPlayer.equals(turn);
+        Log.d("DEBUG", "Button Enabled: " + changeTurn);
+
+        binding.rockButton.setEnabled(changeTurn);
+        binding.paperButton.setEnabled(changeTurn);
+        binding.scissorsButton.setEnabled(changeTurn);
     }
 
     private void updateTurnIndicator() {
         // Set turn text based on the current player's turn
         if ("User1".equals(turn)) {
             binding.turnTextView.setText(getString(R.string.player_1_s_turn));
-            binding.turnTextView.setTextColor(ContextCompat.getColor(this, R.color.player_1));
-            binding.player1ScoreLabel.setTextColor(ContextCompat.getColor(this, R.color.player_1));
-            binding.player2ScoreLabel.setTextColor(ContextCompat.getColor(this, R.color.grey));
-            binding.player1ScoreLabel.setTypeface(null, Typeface.BOLD);
-            binding.player2ScoreLabel.setTypeface(null, Typeface.NORMAL);
+            binding.turnTextView.setTextColor(getResources().getColor(R.color.player_1));
         } else {
             binding.turnTextView.setText(getString(R.string.player_2_s_turn));
-            binding.turnTextView.setTextColor(ContextCompat.getColor(this, R.color.player_2));
-            binding.player1ScoreLabel.setTextColor(ContextCompat.getColor(this, R.color.grey));
-            binding.player2ScoreLabel.setTextColor(ContextCompat.getColor(this, R.color.player_2));
-            binding.player1ScoreLabel.setTypeface(null, Typeface.NORMAL);
-            binding.player2ScoreLabel.setTypeface(null, Typeface.BOLD);
+            binding.turnTextView.setTextColor(getResources().getColor(R.color.player_2));
         }
     }
 
@@ -120,8 +124,9 @@ public class MainActivity extends AppCompatActivity {
             turn = "User1"; // Switch turn
         }
 
-        // Update turn indicator after choice
+        // Update turn indicator and enable or disable buttons after choice
         updateTurnIndicator();
+        updateButtonState();
 
         // Determine the winner of the round
         if (!user1Choice.isEmpty() && !user2Choice.isEmpty()) {
@@ -146,23 +151,19 @@ public class MainActivity extends AppCompatActivity {
             // Create chat messages for the round
             ChatMessage user1Message = new ChatMessage("User1", "Played", user1Choice, user1Score, turn);
             ChatMessage user2Message = new ChatMessage("User2", "Played", user2Choice, user2Score, turn);
-            ChatMessage blankMessage = new ChatMessage("", "", "", 0, ""); // Empty message
 
             myRef.push().setValue(user1Message);
             myRef.push().setValue(user2Message);
-            myRef.push().setValue(blankMessage);
 
             // Check for winner
             if (user1Score >= 5 || user2Score >= 5) {
                 String winner = (user1Score >= 5) ? "User 1 Wins!" : "User 2 Wins!";
                 Toast.makeText(MainActivity.this, winner, Toast.LENGTH_SHORT).show();
+                myRef.removeValue();
                 user1Score = 0;
                 user2Score = 0;
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    myRef.removeValue();
-                    binding.player1Score.setText("0");
-                    binding.player2Score.setText("0");
-                }, 3000); // Delay in milliseconds
+                binding.player1Score.setText("0");
+                binding.player2Score.setText("0");
             }
             user1Choice = "";
             user2Choice = "";
