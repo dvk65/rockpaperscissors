@@ -2,17 +2,13 @@ package com.tflite.madlab6;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Spinner;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.google.firebase.database.DataSnapshot;
@@ -24,9 +20,9 @@ import com.tflite.madlab6.databinding.ActivityMainBinding;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
+
     ActivityMainBinding binding;
     FirebaseDatabase database;
     DatabaseReference myRef;
@@ -35,6 +31,9 @@ public class MainActivity extends AppCompatActivity {
     ChatMessage chatMessage;
     int user1Score = 0;
     int user2Score = 0;
+    private String user1Choice = "";
+    private String user2Choice = "";
+    private String turn = "User1";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,126 +47,108 @@ public class MainActivity extends AppCompatActivity {
 
         messageList = new ArrayList<>();
         adapter = new MessageAdapter(messageList);
-        binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        binding.recyclerView.setAdapter(adapter);
+        binding.messageRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        binding.messageRecyclerView.setAdapter(adapter);
 
-        EditText messageInput = binding.messageInput;
-        Button sendButton = binding.sendButton;
-        Spinner optionSpinner1 = binding.optionSpinner1;
-        Spinner optionSpinner2 = binding.optionSpinner2;
+        TextView turnTextView = binding.turnTextView;
+        TextView player1ScoreTextView = binding.player1Score;
+        TextView player2ScoreTextView = binding.player2Score;
 
-        Button clearButton = binding.clearButton;
+        ImageButton rockButton = binding.rockButton;
+        ImageButton paperButton = binding.paperButton;
+        ImageButton scissorsButton = binding.scissorsButton;
 
-        sendButton.setOnClickListener(v -> {
-            final String[] user1choice = {optionSpinner1.getSelectedItem().toString()};
-            final String[] user2choice = {optionSpinner2.getSelectedItem().toString()};
+        myRef.removeValue();
 
-//            String user1choice = "";
-//            String user2choice = "";
+//        updateTurnIndicator();
 
-//            int user1Score = 0;
-//            int user2Score = 0;
+        // Set listeners for buttons
+        rockButton.setOnClickListener(v -> handleChoice("Rock"));
+        paperButton.setOnClickListener(v -> handleChoice("Paper"));
+        scissorsButton.setOnClickListener(v -> handleChoice("Scissors"));
 
-//            if (chatMessage.getSender().equals("User1")) {
-////                user1choice = chatMessage.getChoice();
-//                user1Score = chatMessage.getUserScore();
-//            } else if (chatMessage.getSender().equals("User2")) {
-////                user2choice = chatMessage.getChoice();
-//                user2Score = chatMessage.getUserScore();
-//            }
-
-//            Log.d("SCORES", "Updated EventListener Scores - User1: " + user1Score + " | User2: " + user2Score);
-
-            myRef.child("user1Score").get().addOnCompleteListener(task -> {
-                if (task.isSuccessful() && task.getResult().exists()) {
-                    user1Score = task.getResult().getValue(Long.class).intValue();
-                } else {
-                    user1Score = 0;
-                }
-                myRef.child("user2Score").get().addOnCompleteListener(task2 -> {
-                    if (task2.isSuccessful() && task2.getResult().exists()) {
-                        user2Score = task2.getResult().getValue(Long.class).intValue();
-                    } else {
-                        user2Score = 0;
-                    }
-
-                    if(!user1choice[0].isEmpty() && !user2choice[0].isEmpty()) {
-                        if ((user1choice[0].equals("Rock") && user2choice[0].equals("Scissors")) ||
-                                (user1choice[0].equals("Scissors") && user2choice[0].equals("Paper")) ||
-                                (user1choice[0].equals("Paper") && user2choice[0].equals("Rock"))) {
-                            user1Score++;
-                        } else if (!user1choice[0].equals(user2choice[0])) {
-                            user2Score++;
-                            Log.d("SCORES", "Updated else if Scores - User1: " + user1Score + " | User2: " + user2Score);
-                        }
-
-//                        myRef.child("user1Score").setValue(user1Score);
-//                        myRef.child("user2Score").setValue(user2Score);
-
-                        ChatMessage user1Message = new ChatMessage("User1", "Played", user1choice[0], user1Score);
-                        ChatMessage user2Message = new ChatMessage("User2", "Played", user2choice[0], user2Score);
-
-                        myRef.push().setValue(user1Message);
-                        myRef.push().setValue(user2Message);
-
-                        if (user1Score == 5 || user2Score == 5) {
-                            if (user1Score >= 5) {
-                                Toast.makeText(MainActivity.this, "User 1 Wins!", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(MainActivity.this, "User 2 Wins!", Toast.LENGTH_SHORT).show();
-                            }
-//                            myRef.removeEventListener(this);
-                            myRef.removeValue();
-//                            break;
-                        }
-                        user1choice[0] = "";
-                        user2choice[0] = "";
-                    }
-
-
-//                    if (!user1choice.isEmpty()) {
-//                        chatMessage = new ChatMessage("User1", "Played", user1choice, user1Score);
-//                        myRef.push().setValue(chatMessage);
-////                        Log.d("SCORES", "Updated Scores - User1: " + user1Score + " | User2: " + user2Score);
-//                    }
-//
-//                    if (!user2choice.isEmpty()) {
-//                        chatMessage = new ChatMessage("User2", "Played", user2choice, user2Score);
-//                        myRef.push().setValue(chatMessage);
-//                    }
-                });
-            });
-        });
-
-        clearButton.setOnClickListener(view -> myRef.removeValue());
 
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
+            public void onDataChange(DataSnapshot snapshot) {
                 adapter.clearMessages();
-
                 for (DataSnapshot childSnapshot : snapshot.getChildren()) {
-
                     chatMessage = childSnapshot.getValue(ChatMessage.class);
-                    assert chatMessage != null;
-                    adapter.addMessage(chatMessage);
-
-
-
-
+                    if (chatMessage != null) {
+                        adapter.addMessage(chatMessage);
+                    }
                 }
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+            public void onCancelled(DatabaseError error) {
                 Toast.makeText(MainActivity.this, "Error loading messages", Toast.LENGTH_SHORT).show();
             }
         });
+    }
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (vi, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            vi.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+    private void updateTurnIndicator() {
+        // Set turn text based on the current player's turn
+        if ("User1".equals(turn)) {
+            binding.turnTextView.setText(getString(R.string.player_1_s_turn));
+            binding.turnTextView.setTextColor(getResources().getColor(R.color.player_1));
+        } else {
+            binding.turnTextView.setText(getString(R.string.player_2_s_turn));
+            binding.turnTextView.setTextColor(getResources().getColor(R.color.player_2));
+        }
+    }
+
+    private void handleChoice(String choice) {
+        if ("User1".equals(turn)) {
+            user1Choice = choice;
+            turn = "User2"; // Switch turn
+        } else if ("User2".equals(turn)) {
+            user2Choice = choice;
+            turn = "User1"; // Switch turn
+        }
+
+        // Update turn indicator after choice
+        updateTurnIndicator();
+
+        // Determine the winner of the round
+        if (!user1Choice.isEmpty() && !user2Choice.isEmpty()) {
+            if (user1Choice.equals(user2Choice)) {
+                user1Choice = "";
+                user2Choice = "";
+                // It's a tie, no score update
+                return;
+            }
+            if ((user1Choice.equals("Rock") && user2Choice.equals("Scissors")) ||
+                    (user1Choice.equals("Scissors") && user2Choice.equals("Paper")) ||
+                    (user1Choice.equals("Paper") && user2Choice.equals("Rock"))) {
+                user1Score++;
+            } else {
+                user2Score++;
+            }
+
+            // Update scores
+            binding.player1Score.setText(String.valueOf(user1Score));
+            binding.player2Score.setText(String.valueOf(user2Score));
+
+            // Create chat messages for the round
+            ChatMessage user1Message = new ChatMessage("User1", "Played", user1Choice, user1Score, turn);
+            ChatMessage user2Message = new ChatMessage("User2", "Played", user2Choice, user2Score, turn);
+
+            myRef.push().setValue(user1Message);
+            myRef.push().setValue(user2Message);
+
+            // Check for winner
+            if (user1Score >= 5 || user2Score >= 5) {
+                String winner = (user1Score >= 5) ? "User 1 Wins!" : "User 2 Wins!";
+                Toast.makeText(MainActivity.this, winner, Toast.LENGTH_SHORT).show();
+                myRef.removeValue();
+                user1Score = 0;
+                user2Score = 0;
+                binding.player1Score.setText("0");
+                binding.player2Score.setText("0");
+            }
+            user1Choice = "";
+            user2Choice = "";
+        }
     }
 }

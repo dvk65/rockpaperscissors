@@ -10,7 +10,9 @@
     <string name="rock">Rock</string>
     <string name="_0">0</string>
     <string name="player_1_s_turn">Player 1\'s Turn</string>
+    <string name="player_2_s_turn">Player 2\'s Turn</string>
     <string-array name="game_options">
+        <item>Select Option</item>
         <item>Rock</item>
         <item>Paper</item>
         <item>Scissors</item>
